@@ -9,11 +9,8 @@ Node::Node(string pData, int pNumber) {
 }
 
 Node::Node(const Node * OtherNode) {
-    Right = new Node();
-    Right = OtherNode->Right;
-
-    Left = new Node();
-    Left = OtherNode->Left;
+    Right = nullptr;
+    Left = nullptr;
 
     Data = OtherNode->Data;
     Number = OtherNode->Number;
@@ -179,7 +176,7 @@ void LinkedList::AddNodeAtPosition(const Node Value, const int Position) {
     Node * CurrentNode = Head;
     Node * LeftNode = nullptr;
 
-    if (Position > Size || Position < 0) {
+    if (Position > Size || Position < 1) {
         cout << "Cannot add. Position " << Position << " is invalid." << endl;
         return;
     }
