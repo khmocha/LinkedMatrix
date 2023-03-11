@@ -23,8 +23,12 @@ class LinkedList {
         Node * Head;
         Node * Tail;
         int Size;
+
     public:
-        LinkedList() : Head(nullptr), Tail(nullptr), Size(0) {};
+        LinkedList * Right;
+        LinkedList * Left;
+
+        LinkedList() : Head(nullptr), Tail(nullptr), Size(0), Right(nullptr), Left(nullptr) {};
         ~LinkedList();
         LinkedList(const LinkedList & List);
 
@@ -33,13 +37,17 @@ class LinkedList {
         void operator += (const string Value);
         void operator += (const int Value);
         void operator -= (const string Value);
+        void operator *= (const int Value);
         LinkedList operator + (const LinkedList & List);
         bool operator > (const LinkedList & List);
+        bool operator == (const LinkedList & List);
+        bool operator != (const LinkedList & List);
         
         friend ostream & operator << (ostream & Output, const LinkedList & List);
         
         void ReversePrint(ostream & Output);
         void AddNodeAtPosition(const Node Value, const int Position);
+        void AddNodeAtRow(const Node Value, const int Col);
         void Sort();
         void Clear();
 
@@ -47,5 +55,32 @@ class LinkedList {
         Node * GetTail() {return Tail;};
         int GetSize() {return Size;};
 };  
+
+class LinkedMatrix {
+    private:
+        LinkedList * Head;
+        LinkedList * Tail;
+        int Size;
+        bool Allocated;
+
+    public:
+        LinkedMatrix() : Head(nullptr), Tail(nullptr), Size(0), Allocated(false) {};
+        ~LinkedMatrix();
+
+        void operator += (LinkedList & List);
+        LinkedMatrix operator * (LinkedMatrix & Matrix);
+        LinkedMatrix operator + (LinkedMatrix & Matrix);
+
+        friend ostream & operator << (ostream & Output, LinkedMatrix & Matrix);
+
+        LinkedMatrix Transpose();
+        void AddNodeAtRowCol(const Node Value, const int Row, const int Col);
+        void Fill(const int Columns);
+        void ReversePrint(ostream & Output); 
+
+        LinkedList & GetHead() {return *Head;};
+        LinkedList & GetTail() {return *Tail;};
+        int GetSize() {return Size;};
+};
 
 #endif

@@ -25,7 +25,7 @@ LinkedList::~LinkedList() {
         delete TemporaryNode;
         TemporaryNode = nullptr;
     }
-    cout << "Deconstructor called! " << this << endl;
+    //cout << "Deconstructor called! " << this << endl;
 }
 
 LinkedList::LinkedList(const LinkedList & List) {
@@ -33,6 +33,9 @@ LinkedList::LinkedList(const LinkedList & List) {
     Head = nullptr;
     Tail = nullptr;
     Size = 0;
+
+    Right = nullptr;
+    Left = nullptr;
 
     while (CurrentNode != nullptr) {
         *this += *CurrentNode;
@@ -110,11 +113,19 @@ bool LinkedList::operator > (const LinkedList & List) {
     return Size > List.Size;
 }
 
+bool LinkedList::operator == (const LinkedList & List) {
+    return Size == List.Size;
+}
+
+bool LinkedList::operator != (const LinkedList & List) {
+    return Size != List.Size;
+}
+
 ostream & operator << (ostream & Output, const LinkedList & List) {
     Node * CurrentNode = List.Head;
 
     while (CurrentNode != nullptr) {
-        Output << CurrentNode->Data << " " << CurrentNode->Number << " " << CurrentNode << endl;
+        Output << CurrentNode->Data << " " << CurrentNode->Number << ",  ";
         CurrentNode = CurrentNode->Right;
     }
     Output << endl;
@@ -125,7 +136,7 @@ void LinkedList::ReversePrint(ostream & Output) {
     Node * CurrentNode = Tail;
      
     while (CurrentNode != nullptr) {
-        Output << CurrentNode->Data << " " << CurrentNode->Number << " " << CurrentNode << endl;
+        Output << CurrentNode->Data << " " << CurrentNode->Number << ",  ";
         CurrentNode = CurrentNode->Left;
     }
     Output << endl;
@@ -171,6 +182,17 @@ void LinkedList::operator -= (const string Value) {
     cout << "Node not found" << endl;
 }
 
+void LinkedList::operator *= (const int Value) {
+    Node * CurrentNode = Head;
+
+    while (CurrentNode != nullptr) {
+        CurrentNode->Number *= Value;
+
+        CurrentNode = CurrentNode->Right;
+    }
+
+}
+
 void LinkedList::AddNodeAtPosition(const Node Value, const int Position) {
     Node * NewNode = new Node(&Value);
     Node * CurrentNode = Head;
@@ -204,6 +226,27 @@ void LinkedList::AddNodeAtPosition(const Node Value, const int Position) {
             Size++;
             return;
         }
+        CurrentNode = CurrentNode->Right;
+    }
+}
+
+void LinkedList::AddNodeAtRow(const Node Value, const int Col) {
+    Node * CurrentNode = Head;
+
+    for (int i = 1; i <= Col; i++) {
+        if (CurrentNode == nullptr) {
+            if (i < Col) {
+                *this += Node();
+            } else {
+                *this += Value;
+            }
+            CurrentNode = Head;
+            for (int j = 1; j <= i; j++) {
+                CurrentNode = CurrentNode->Right;
+            }
+            continue;
+        }
+
         CurrentNode = CurrentNode->Right;
     }
 }
@@ -274,4 +317,213 @@ void LinkedList::Clear() {
     Head = nullptr;
     Tail = nullptr;
     Size = 0;
+}
+
+LinkedMatrix::~LinkedMatrix() {
+    if (Allocated == false) {
+        return;
+    }
+
+    //cout << "Deconstructor called for Matrix!" << endl;
+    LinkedList * CurrentLL = Head;
+
+    while (CurrentLL != nullptr) {
+        LinkedList * TemporaryLL = CurrentLL;
+        CurrentLL = CurrentLL->Right;
+
+        delete TemporaryLL;
+        TemporaryLL = nullptr;
+    }
+    //cout << "Deconstructor for Matrix has ended!" << endl << endl;
+}
+
+void LinkedMatrix::operator += (LinkedList & List) {
+    LinkedList * CurrentLL = Head;
+
+    if (Head != nullptr) {
+        List.Left = Tail;
+        Tail->Right = &List;
+        Tail = &List;
+    } else {
+        Head = &List;
+        Tail = Head;
+    }
+
+    Size++;
+}
+
+LinkedMatrix LinkedMatrix::operator * (LinkedMatrix & Matrix) {
+    LinkedMatrix NewMatrix = LinkedMatrix();
+    NewMatrix.Allocated = true;
+
+    LinkedMatrix RHSMatrix = Matrix.Transpose();
+
+    LinkedList * LHSCurrentLL = Head; 
+    LinkedList * RHSCurrentLL = RHSMatrix.Head;
+
+    Node * LHSCurrentNode = LHSCurrentLL->GetHead();
+    Node * RHSCurrentNode = RHSCurrentLL->GetHead();
+
+    for (int i = 0; i < Size; i++) {
+        LinkedList * NewList = new LinkedList();
+        NewMatrix += *NewList;
+    }
+
+    LinkedList * NewCurrentLL = NewMatrix.Head;
+    Node * NewCurrentNode = NewCurrentLL->GetHead();
+
+    int Sum = 0;
+    
+    while (LHSCurrentLL != nullptr) {
+        while (RHSCurrentLL != nullptr) {
+            RHSCurrentNode = RHSCurrentLL->GetHead();
+            while (LHSCurrentNode != nullptr) {
+                Sum += RHSCurrentNode->Number * LHSCurrentNode->Number;
+
+                RHSCurrentNode = RHSCurrentNode->Right;
+                LHSCurrentNode = LHSCurrentNode->Right;
+            }
+            *NewCurrentLL += Sum;
+            Sum = 0;
+
+            LHSCurrentNode = LHSCurrentLL->GetHead();
+            RHSCurrentLL = RHSCurrentLL->Right;
+        }
+        NewCurrentLL = NewCurrentLL->Right;
+        LHSCurrentLL = LHSCurrentLL->Right;
+        if (LHSCurrentLL != nullptr) {
+            LHSCurrentNode = LHSCurrentLL->GetHead();
+        }
+
+        RHSCurrentLL = RHSMatrix.Head;
+        if (RHSCurrentLL != nullptr) {
+            RHSCurrentNode = RHSCurrentLL->GetHead();
+        }
+    }
+
+    return NewMatrix;
+}
+
+LinkedMatrix LinkedMatrix:: operator + (LinkedMatrix & Matrix) {
+    LinkedMatrix NewMatrix = LinkedMatrix();
+    NewMatrix.Allocated = true;
+
+    LinkedList * LHSCurrentLL = Head;
+    LinkedList * RHSCurrentLL = Matrix.Head;
+
+    Node * LHSCurrentNode = LHSCurrentLL->GetHead();
+    Node * RHSCurrentNode = RHSCurrentLL->GetHead();
+
+    for (int i = 0; i < Size; i++) {
+        LinkedList * NewList = new LinkedList();
+        NewMatrix += *NewList;
+    }
+
+    LinkedList * NewCurrentLL = NewMatrix.Head;
+
+    while (LHSCurrentLL != nullptr) {
+        while (LHSCurrentNode != nullptr) {
+            *NewCurrentLL += LHSCurrentNode->Number + RHSCurrentNode->Number;
+            
+            LHSCurrentNode = LHSCurrentNode->Right;
+            RHSCurrentNode = RHSCurrentNode->Right;
+        }
+
+        NewCurrentLL = NewCurrentLL->Right;
+        LHSCurrentLL = LHSCurrentLL->Right;
+        if (LHSCurrentLL != nullptr) {
+            LHSCurrentNode = LHSCurrentLL->GetHead();
+        }
+
+        RHSCurrentLL = RHSCurrentLL->Right;
+        if (RHSCurrentLL != nullptr) {
+            RHSCurrentNode = RHSCurrentLL->GetHead();
+        }
+    }
+
+    return NewMatrix;
+}
+
+ostream & operator << (ostream & Output, LinkedMatrix & Matrix) {
+    LinkedList * CurrentLL = Matrix.Head;
+
+    while (CurrentLL != nullptr) {
+        Output << CurrentLL << endl << *CurrentLL << endl;
+        CurrentLL = CurrentLL->Right;
+    }
+
+    return Output;
+}
+
+LinkedMatrix LinkedMatrix::Transpose() {
+    LinkedMatrix NewMatrix = LinkedMatrix();
+    NewMatrix.Allocated = true;
+
+    LinkedList * CurrentLL = Head;
+    Node * CurrentNode = nullptr;
+
+    for (int i = 0; i < CurrentLL->GetSize(); i++) {
+        LinkedList * NewList = new LinkedList();
+        NewMatrix += *NewList;
+    }
+
+    LinkedList * NewCurrentLL = nullptr;
+
+    while (CurrentLL != nullptr) {
+        CurrentNode = CurrentLL->GetHead();
+        NewCurrentLL = NewMatrix.Head;
+
+        while (CurrentNode != nullptr) {
+            *NewCurrentLL += *CurrentNode;
+
+            NewCurrentLL = NewCurrentLL->Right;
+            CurrentNode = CurrentNode->Right;
+        }
+
+        CurrentLL = CurrentLL->Right;
+    }
+
+    return NewMatrix;
+}
+
+void LinkedMatrix::AddNodeAtRowCol(const Node Value, const int Row, const int Col) {
+    LinkedList * CurrentLL = Head;
+
+    for (int i = 1; i <= Row; i++) {
+        if (i == Row) {
+            CurrentLL->AddNodeAtRow(Value, Col);
+            return;
+        }
+        
+        CurrentLL = CurrentLL->Right;
+    }
+}
+
+void LinkedMatrix::Fill(const int Columns) {
+    LinkedList * CurrentLL = Head;
+    Node * CurrentNode = CurrentLL->GetHead();
+
+    while (CurrentLL != nullptr) {
+        for (int i = 0; i < Columns; i++) {
+            if (CurrentNode == nullptr) {
+                *CurrentLL += Node("", 0);
+                continue;
+            }
+            CurrentNode = CurrentNode->Right;
+        }
+
+        CurrentLL = CurrentLL->Right;
+        if (CurrentLL != nullptr) {
+            CurrentNode = CurrentLL->GetHead();
+        }
+    }
+}
+
+void LinkedMatrix::ReversePrint(ostream & Output) {
+    LinkedList * CurrentLL = Tail;
+
+    while (CurrentLL != nullptr) {
+        Output << CurrentLL << endl << *CurrentLL << endl;
+        CurrentLL = CurrentLL->Left;
+    }
 }
